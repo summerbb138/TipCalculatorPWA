@@ -16,16 +16,16 @@ const btnCamera = document.getElementById('btnCamera');
 const cameraInput = document.getElementById('cameraInput');
 const ocrLoading = document.getElementById('ocrLoading');
 
-// Currency formatter
-const currencyFmt = new Intl.NumberFormat(undefined, {
-  style: 'currency',
-  currency: 'USD',
+// Amount formatter — generic "$" symbol, not tied to any specific currency.
+// The app does no conversion, so amounts are shown as a plain number with a
+// leading "$". Number grouping/decimals follow the user's locale.
+const amountFmt = new Intl.NumberFormat(undefined, {
   minimumFractionDigits: 2,
   maximumFractionDigits: 2
 });
 
 function formatCurrency(cents) {
-  return currencyFmt.format(cents / 100);
+  return '$' + amountFmt.format(cents / 100);
 }
 
 function billCents() {
