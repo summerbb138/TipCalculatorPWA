@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="TipCalc">
+  <meta name="theme-color" content="#ADD8E6">
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <title>Tip Calculator</title>
+</head>
+<body>
+
+  <h1>Tip Calculator</h1>
+
+  <!-- Bill Amount -->
+  <div class="section-label">Bill Amount</div>
+  <div class="card">
+    <div class="bill-row">
+      <span class="dollar">$</span>
+      <input type="text" id="billInput" inputmode="decimal" placeholder="0.00" autocomplete="off">
+      <button class="btn-camera" id="btnCamera" aria-label="Scan receipt">&#x1F4F7;</button>
+    </div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    <div class="ocr-loading" id="ocrLoading">Scanning receipt...</div>
+  </div>
+
+  <!-- Split Between -->
+  <div class="section-label">Split Between</div>
+  <div class="card">
+    <div class="stepper">
+      <span class="stepper-label" id="splitLabel">1 person</span>
+      <div class="stepper-controls">
+        <button id="btnMinus" disabled aria-label="Decrease">&minus;</button>
+        <button id="btnPlus" aria-label="Increase">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tip Results -->
+  <div class="section-label" id="gridHeader">Totals</div>
+  <div class="card">
+    <table class="tip-grid">
+      <thead>
+        <tr>
+          <th></th>
+          <th>%</th>
+          <th>Tip</th>
+          <th style="text-align:right">Total</th>
+        </tr>
+      </thead>
+      <tbody id="gridBody"></tbody>
+    </table>
+  </div>
+
+  <!-- Share -->
+  <button class="btn-share" id="btnShare">&#x21E7; Send to Friends</button>
+
+  <script src="app.js"></script>
+</body>
+</html>
