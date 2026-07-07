@@ -22,6 +22,14 @@ PAGES_BRANCH="gh-pages"
 APP_PREFIX="pwa"
 SITE_URL="https://summerbb138.github.io/TipCalculatorPWA/"
 
+# 0. Keep the docs PDF in sync with its markdown source.
+DOC_MD="docs/SYSTEM_DOCUMENTATION.md"
+DOC_PDF="docs/SYSTEM_DOCUMENTATION.pdf"
+if [ -f "$DOC_MD" ] && { [ ! -f "$DOC_PDF" ] || [ "$DOC_MD" -nt "$DOC_PDF" ]; }; then
+  echo "→ Docs markdown changed — regenerating PDF ..."
+  "$REPO_DIR/make-docs.sh"
+fi
+
 # 1. Handle uncommitted changes.
 if [ -n "$(git status --porcelain)" ]; then
   if [ "$#" -ge 1 ]; then
