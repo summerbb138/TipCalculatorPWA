@@ -26,24 +26,25 @@ Prepared by: Claude Code (Opus 4.6)
 15. Option 1 — Operate via Claude
 16. Option 2 — Operate Manually via CLI
 17. Option 3 — Operate via PWA (Primary)
-18. Outputs
-19. Housekeeping and Maintenance
-20. Troubleshooting
-21. Off-Peak / Remote / Scheduled Operation
-22. Change Log
-23. Appendix
+18. Deployment and Hosting (GitHub Pages)
+19. Outputs
+20. Housekeeping and Maintenance
+21. Troubleshooting
+22. Off-Peak / Remote / Scheduled Operation
+23. Change Log
+24. Appendix
 
 ## 1. Document Control
 
 | Field | Value |
 |---|---|
 | Document title | Tip Calculator PWA — System Documentation |
-| Version | 1.0 |
+| Version | 1.1 |
 | Status | Active |
 | Owner | Doug |
-| Last updated | 2026-06-17 |
+| Last updated | 2026-07-06 |
 | Storage location | `~/Desktop/Claude Summary/Tip Calculator PWA/docs/SYSTEM_DOCUMENTATION.md` |
-| Related files | `docs/README.md` |
+| Related files | `docs/README.md`, `deploy.sh` |
 
 ## 2. System Overview
 
@@ -57,6 +58,7 @@ A lightweight Progressive Web App that calculates tip amounts for restaurant bil
 | Main purpose | Calculate tips and split bills |
 | Primary user(s) | Doug (personal use) |
 | Primary interface(s) | PWA on iPhone (Add to Home Screen) |
+| Hosting | GitHub Pages — https://summerbb138.github.io/TipCalculatorPWA/ |
 | Current status | Active — replaces native Tip Calculator |
 
 ## 3. System Identity
@@ -68,7 +70,7 @@ A lightweight Progressive Web App that calculates tip amounts for restaurant bil
 | Project folder | `~/Desktop/Claude Summary/Tip Calculator PWA/` |
 | Runtime environment | Any modern browser (Safari, Chrome) |
 | Main language(s) | HTML, CSS, JavaScript |
-| Primary execution mode | PWA served via local HTTP server |
+| Primary execution mode | PWA hosted on GitHub Pages (also runnable via local HTTP server) |
 
 ## 4. Purpose and Intended Use
 
@@ -109,6 +111,8 @@ Quickly calculate tip amounts and per-person shares when dining out.
 |---|---|---|---|
 | Python 3 | 3.x | Local HTTP server | Built-in on macOS |
 | Browser | Safari / Chrome | Run the PWA | Any modern browser |
+| Git | 2.x | Push code, build `gh-pages` branch | Needed only for deploying |
+| GitHub CLI (`gh`) | any | Authenticated pushes / Pages admin | Logged in as `summerbb138` |
 
 ### Installation notes
 No installation needed beyond serving the files. For iPhone home-screen install:
@@ -172,7 +176,10 @@ No external libraries — pure HTML/CSS/JS.
 | `pwa/sw.js` | Service worker | No | Offline caching |
 | `pwa/manifest.json` | PWA manifest | No | App name, icons, theme |
 | `pwa/icon.png` | App icon | No | Home screen icon |
-| `docs/` | Documentation | No | This file, README |
+| `pwa/serve.py` | Local dev server | No | Serves `pwa/` on port 8093 |
+| `start.sh` | Launch local server | Yes | Convenience wrapper around `serve.py` |
+| `deploy.sh` | One-command deploy to GitHub Pages | Yes | See section 18 |
+| `docs/` | Documentation | No | This file, README, PDF |
 
 ## 13. Core Workflows
 
@@ -232,20 +239,68 @@ Open `http://<mac-ip>:8093` in Safari → Share → Add to Home Screen.
 
 This is the primary and recommended way to use the app.
 
-## 18. Outputs
+## 18. Deployment and Hosting (GitHub Pages)
+
+The app is hosted publicly on GitHub Pages, so it works on the iPhone from a permanent URL with **no Mac and no local server running**. This section is the source of truth for deploying — follow it rather than re-deriving the setup.
+
+### Live URL
+```
+https://summerbb138.github.io/TipCalculatorPWA/
+```
+Open in iPhone Safari → Share → **Add to Home Screen**.
+
+### How to deploy a change (the only command you need)
+After editing anything in `pwa/`, from the project root:
+```bash
+cd ~/Desktop/Claude\ Summary/Tip\ Calculator\ PWA
+./deploy.sh "describe what changed"   # commits your changes, then deploys
+# or, if you already committed:
+./deploy.sh
+```
+`deploy.sh` pushes `main`, rebuilds the `gh-pages` branch from `pwa/`, and force-pushes it. GitHub Pages redeploys automatically ~1 minute later. Run `deploy.sh` with **no** argument and a dirty tree and it stops safely instead of deploying half-finished work.
+
+### How the hosting is wired (read before changing it)
+| Item | Value / Rationale |
+|---|---|
+| Repository | `github.com/summerbb138/TipCalculatorPWA` — **must stay public** (free-plan Pages does not work on private repos) |
+| Pages source | Branch `gh-pages`, path `/` (root) |
+| Why a `gh-pages` branch? | The app lives in the `pwa/` subfolder. Pages' branch source can only serve the repo **root** or `/docs`, not an arbitrary subfolder — so `gh-pages` holds the `pwa/` contents at its root, built with `git subtree split`. |
+| Why not GitHub Actions? | The local `gh` OAuth token lacks the `workflow` scope, so pushing a `.github/workflows/*.yml` file is rejected. The `gh-pages` subtree method needs no special scope. If you later add the `workflow` scope (`gh auth refresh -s workflow`), an Actions workflow becomes a valid alternative. |
+| Relative paths | `manifest.json` uses `start_url`/`scope` = `"."` and `index.html`/`sw.js` use `./…`, so the app runs correctly under the `/TipCalculatorPWA/` subpath. Keep paths relative. |
+
+### Manual equivalent of deploy.sh (if the script is missing)
+```bash
+git push origin main
+git branch -D gh-pages 2>/dev/null
+git subtree split --prefix pwa -b gh-pages
+git push -f origin gh-pages
+```
+
+### One-time Pages setup (already done — for reference/rebuild only)
+```bash
+gh repo edit summerbb138/TipCalculatorPWA --visibility public --accept-visibility-change-consequences
+gh api --method POST repos/summerbb138/TipCalculatorPWA/pages \
+  -f 'source[branch]=gh-pages' -f 'source[path]=/'
+```
+
+### Caveat — service worker cache after deploy
+Because `sw.js` caches assets for offline use, the installed PWA may keep showing the **old** version after a deploy until you close and reopen it (or hard-refresh in Safari). To force all clients to update, bump `CACHE_NAME` in `pwa/sw.js` (e.g. `tipcalc-v1` → `tipcalc-v2`) before deploying.
+
+## 19. Outputs
 
 N/A — the app displays results on-screen. No files or reports are generated.
 
-## 19. Housekeeping and Maintenance
+## 20. Housekeeping and Maintenance
 
 | Task | Frequency | How to do it | Why it matters |
 |---|---|---|---|
 | Clear browser cache | Rarely | Safari Settings → Clear cache | If PWA behaves oddly |
 | Re-add to home screen | After server IP change | Share → Add to Home Screen | URL may change |
+| Deploy an update | After any `pwa/` edit | Run `./deploy.sh "message"` (section 18) | Publishes to the live GitHub Pages URL |
 
 Minimal maintenance required — this is a simple, self-contained PWA.
 
-## 20. Troubleshooting
+## 21. Troubleshooting
 
 | Problem | Likely cause | How to diagnose | How to fix |
 |---|---|---|---|
@@ -253,20 +308,23 @@ Minimal maintenance required — this is a simple, self-contained PWA.
 | Camera not working | No HTTPS (required for camera API) | Check URL | Use localhost or set up HTTPS |
 | Stale version after update | Service worker cache | Check sw.js version | Increment cache version in sw.js |
 | Can't add to home screen | Not served via HTTP | Check URL bar | Must use http:// not file:// |
+| Deploy didn't appear | Pages not rebuilt yet, or SW cache | Wait ~1 min; check Actions/Pages build | Reopen the PWA or bump `CACHE_NAME` in sw.js (section 18) |
+| `deploy.sh` rejected push | `gh` token missing scope / not logged in | `gh auth status` | Re-auth: `gh auth login`; never needs `workflow` scope for the gh-pages method |
 
-## 21. Off-Peak / Remote / Scheduled Operation
+## 22. Off-Peak / Remote / Scheduled Operation
 
 N/A — this is an on-demand calculator app. No scheduled or background operation.
 
-## 22. Change Log
+## 23. Change Log
 
 | Date | Author | Change summary |
 |---|---|---|
 | 2026-03-28 | Doug + Claude | v1.0 — Initial PWA release |
 | 2026-06-16 | Claude | Folder restructure to standard layout |
 | 2026-06-17 | Claude | Created SYSTEM_DOCUMENTATION.md |
+| 2026-07-06 | Claude | Currency-neutral "$" display (no more "US$"); published to GitHub Pages via `gh-pages` branch; added `deploy.sh`; documented deployment (section 18) |
 
-## 23. Appendix
+## 24. Appendix
 
 ### Appendix A — Tip rates
 Default rates: 12%, 15%, 18%, 20%. These are defined in `app.js` as the `tipRates` array.
